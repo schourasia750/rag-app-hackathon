@@ -1,0 +1,248 @@
+@import "tailwindcss" source(none);
+@source "../src";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * FORGE — Industrial Knowledge Intelligence
+ * Blueprint aesthetic: deep graphite base, cyan schematic lines, amber signal accents.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-signal: var(--signal);
+  --color-signal-foreground: var(--signal-foreground);
+  --color-schematic: var(--schematic);
+  --color-hazard: var(--hazard);
+  --color-safe: var(--safe);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-grid: var(--grid);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display: "Space Grotesk", "Inter", sans-serif;
+}
+
+:root {
+  --radius: 0.375rem;
+
+  /* Blueprint dark palette */
+  --background: oklch(0.16 0.012 240);
+  --foreground: oklch(0.94 0.012 90);
+  --surface: oklch(0.19 0.014 240);
+  --surface-2: oklch(0.22 0.016 240);
+  --card: oklch(0.19 0.014 240);
+  --card-foreground: oklch(0.94 0.012 90);
+  --popover: oklch(0.20 0.014 240);
+  --popover-foreground: oklch(0.94 0.012 90);
+
+  /* Amber signal — industrial primary */
+  --primary: oklch(0.78 0.16 68);
+  --primary-foreground: oklch(0.17 0.012 240);
+  --signal: oklch(0.78 0.16 68);
+  --signal-foreground: oklch(0.17 0.012 240);
+
+  /* Cyan schematic — secondary technical accent */
+  --schematic: oklch(0.78 0.13 210);
+  --secondary: oklch(0.28 0.02 240);
+  --secondary-foreground: oklch(0.94 0.012 90);
+
+  --muted: oklch(0.24 0.014 240);
+  --muted-foreground: oklch(0.65 0.02 240);
+  --accent: oklch(0.30 0.03 210);
+  --accent-foreground: oklch(0.94 0.012 90);
+
+  --destructive: oklch(0.65 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --hazard: oklch(0.72 0.22 28);
+  --safe: oklch(0.78 0.15 155);
+
+  --border: oklch(0.28 0.015 240);
+  --input: oklch(0.24 0.014 240);
+  --ring: oklch(0.78 0.16 68);
+  --grid: oklch(0.24 0.015 240 / 0.6);
+}
+
+.dark {
+  --background: oklch(0.16 0.012 240);
+  --foreground: oklch(0.94 0.012 90);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html, body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--signal) 40%, transparent);
+    color: var(--foreground);
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--border) 80%, transparent);
+    border-radius: 8px;
+    border: 2px solid var(--background);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--signal) 40%, var(--border));
+  }
+}
+
+/* Blueprint grid background */
+@utility blueprint-grid {
+  background-image:
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+@utility blueprint-grid-fine {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--grid) 40%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--grid) 40%, transparent) 1px, transparent 1px),
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size: 8px 8px, 8px 8px, 64px 64px, 64px 64px;
+}
+
+@utility corner-brackets {
+  position: relative;
+}
+@utility corner-brackets {
+  &::before, &::after {
+    content: "";
+    position: absolute;
+    width: 10px; height: 10px;
+    border-color: var(--signal);
+  }
+  &::before {
+    top: -1px; left: -1px;
+    border-top: 1.5px solid var(--signal);
+    border-left: 1.5px solid var(--signal);
+  }
+  &::after {
+    bottom: -1px; right: -1px;
+    border-bottom: 1.5px solid var(--signal);
+    border-right: 1.5px solid var(--signal);
+  }
+}
+
+@utility scan-line {
+  position: relative;
+  overflow: hidden;
+}
+@utility scan-line {
+  &::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      color-mix(in oklab, var(--signal) 25%, transparent) 50%,
+      transparent 100%);
+    animation: scan 2s linear infinite;
+  }
+}
+
+@keyframes scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+.pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+
+@keyframes ticker {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+.font-mono { font-family: var(--font-mono); }
+.font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+
+/* Markdown */
+.md-body {
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+.md-body p { margin: 0.5em 0; }
+.md-body h1, .md-body h2, .md-body h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin: 1em 0 0.4em;
+  color: var(--foreground);
+}
+.md-body h1 { font-size: 1.25rem; }
+.md-body h2 { font-size: 1.1rem; }
+.md-body h3 { font-size: 1rem; color: var(--signal); }
+.md-body ul, .md-body ol { padding-left: 1.4em; margin: 0.5em 0; }
+.md-body li { margin: 0.25em 0; }
+.md-body code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--surface-2);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+.md-body pre {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 0.75em 1em;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 0.75em 0;
+}
+.md-body pre code { background: transparent; border: 0; padding: 0; }
+.md-body strong { color: var(--signal); font-weight: 600; }
+.md-body a { color: var(--schematic); text-decoration: underline; text-underline-offset: 3px; }
+.md-body blockquote {
+  border-left: 2px solid var(--signal);
+  padding-left: 1em;
+  margin: 0.75em 0;
+  color: var(--muted-foreground);
+}
+.md-body table {
+  border-collapse: collapse;
+  margin: 0.75em 0;
+  font-size: 0.88rem;
+}
+.md-body th, .md-body td {
+  border: 1px solid var(--border);
+  padding: 0.4em 0.75em;
+}
+.md-body th { background: var(--surface-2); text-align: left; }

@@ -1,30 +1,39 @@
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pkl
+bm25_docs.pkl
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+
+# Data & uploads (don't commit user files)
+backend/uploads/
+backend/extracted_images/
+backend/qdrant_data/
+backend/documents.json
+
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
+# Editor
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-
-# credentials
-.env
-.venv
-# Qdrant
-backend/qdrant_data/
+*.local
