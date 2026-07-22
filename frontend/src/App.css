@@ -1,5 +1,5 @@
 .app {
-  max-width: 600px;
+  max-width: 650px;
   margin: 40px auto;
   padding: 20px;
   font-family: sans-serif;
@@ -49,4 +49,97 @@ button:disabled {
   padding: 15px;
   background: #f1f5f9;
   border-radius: 6px;
+}
+
+/* Document list */
+.doc-list {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.doc-list h3 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.doc-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+.doc-meta {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+/* Pipeline steps */
+.pipeline {
+  margin-top: 15px;
+  padding: 12px;
+  background: #fafafa;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.pipeline h3 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.step:last-child {
+  border-bottom: none;
+}
+
+.step-icon {
+  font-size: 16px;
+}
+
+.step-name {
+  font-weight: 600;
+  text-transform: capitalize;
+  min-width: 90px;
+}
+
+.step-detail {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.step-running {
+  opacity: 0.7;
+}
+
+.sources {
+  width: 100%;
+  margin-top: 6px;
+  padding-left: 30px;
+}
+
+.source-chip {
+  font-size: 12px;
+  color: #4b5563;
+  background: #e5e7eb;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
