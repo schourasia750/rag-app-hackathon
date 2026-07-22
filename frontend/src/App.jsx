@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 import "./App.css";
 
 const API_URL = "http://localhost:8000";
@@ -210,7 +211,10 @@ function App() {
               <div key={i} className="chat-exchange">
                 <div className="chat-user"><strong>You:</strong> {msg.question}</div>
                 <div className="chat-assistant">
-                  <strong>AI:</strong> {msg.answer}
+                  <strong>AI:</strong>
+                  <div className="markdown-content">
+                    <ReactMarkdown>{msg.answer}</ReactMarkdown>
+                  </div>
                   {msg.images && msg.images.length > 0 && (
                     <div className="chat-images">
                       {msg.images.map((img, j) => (

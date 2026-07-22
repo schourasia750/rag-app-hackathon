@@ -498,7 +498,15 @@ IMAGE INSTRUCTIONS:
 - NEVER say you cannot show images.
 
 FORMAT:
-- Cite information as (page X)
+- Use **Markdown** formatting in your answer:
+  - Use **bold** for key terms and important facts
+  - Use ## headings to organize sections if answer is long
+  - Use bullet points or numbered lists for steps/processes
+  - Use > blockquotes for direct quotes from documents
+  - Use `code style` for technical values (temperatures, measurements, chemical formulas)
+  - Use [links](url) for any web sources
+  - Add line breaks between paragraphs for readability
+- Cite information as **(page X)** in bold italics
 - Include ALL relevant details from the context
 - If context references Figure 4 on page 15, write: [[SHOW_IMAGE:ts_usa_investigation_report_public.pdf|15]]
 
