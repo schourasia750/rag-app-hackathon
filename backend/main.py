@@ -7,7 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain_community.vectorstores import FAISS
+from langchain_qdrant import QdrantVectorStore
+from qdrant_client import QdrantClient
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from sse_starlette.sse import EventSourceResponse
@@ -24,16 +25,33 @@ app.add_middleware(
 )
 
 UPLOAD_DIR = "uploads"
-VECTORSTORE_DIR = "vectorstore"
+QDRANT_PATH = "qdrant_data"
+COLLECTION_NAME = "documents"
 METADATA_FILE = "documents.json"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 def load_doc_metadata():
+    docs = []
     if os.path.exists(METADATA_FILE):
         with open(METADATA_FILE, "r") as f:
-            return json.load(f)
-    return []
+            docs = json.load(f)
+
+    # Also pick up any files in uploads/ that aren't tracked yet
+    tracked_names = {d["filename"] for d in docs}
+    if os.path.exists(UPLOAD_DIR):
+        for fname in os.listdir(UPLOAD_DIR):
+            if fname not in tracked_names and (fname.endswith(".pdf") or fname.endswith(".txt")):
+                docs.append({
+                    "filename": fname,
+                    "chunks": "?",
+                    "uploaded_at": "previously uploaded",
+                })
+        # Persist so next call is fast
+        if len(docs) > len(tracked_names):
+            save_doc_metadata(docs)
+
+    return docs
 
 
 def save_doc_metadata(docs):
@@ -46,11 +64,17 @@ vectorstore = None
 
 def get_vectorstore():
     global vectorstore
-    if vectorstore is None and os.path.exists(VECTORSTORE_DIR):
+    if vectorstore is None:
+        client = QdrantClient(path=QDRANT_PATH)
         embeddings = OpenAIEmbeddings()
-        vectorstore = FAISS.load_local(
-            VECTORSTORE_DIR, embeddings, allow_dangerous_deserialization=True
-        )
+        # Check if collection exists
+        collections = [c.name for c in client.get_collections().collections]
+        if COLLECTION_NAME in collections:
+            vectorstore = QdrantVectorStore(
+                client=client,
+                collection_name=COLLECTION_NAME,
+                embedding=embeddings,
+            )
     return vectorstore
 
 
@@ -77,15 +101,14 @@ async def upload_file(file: UploadFile = File(...)):
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     chunks = splitter.split_documents(documents)
 
-    # Create or update vector store
+    # Create or update vector store with Qdrant
     embeddings = OpenAIEmbeddings()
-    if vectorstore is None:
-        vectorstore = FAISS.from_documents(chunks, embeddings)
-    else:
-        vectorstore.add_documents(chunks)
-
-    # Persist
-    vectorstore.save_local(VECTORSTORE_DIR)
+    vectorstore = QdrantVectorStore.from_documents(
+        chunks,
+        embeddings,
+        path=QDRANT_PATH,
+        collection_name=COLLECTION_NAME,
+    )
 
     # Save doc metadata
     docs_meta = load_doc_metadata()
