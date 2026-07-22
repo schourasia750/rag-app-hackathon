@@ -75,6 +75,23 @@ button:disabled {
 .doc-meta {
   color: #9ca3af;
   font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.delete-btn {
+  padding: 2px 6px;
+  font-size: 12px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #dc2626;
 }
 
 /* Pipeline steps */

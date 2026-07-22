@@ -7,6 +7,7 @@ function App() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState("");
+  const [uploadSteps, setUploadSteps] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
@@ -32,6 +33,7 @@ function App() {
     if (!file) return;
     setUploading(true);
     setUploadMsg("");
+    setUploadSteps([]);
     const formData = new FormData();
     formData.append("file", file);
     try {
@@ -39,13 +41,44 @@ function App() {
         method: "POST",
         body: formData,
       });
-      const data = await res.json();
-      if (res.ok) {
-        setUploadMsg(data.message);
-        fetchDocuments(); // refresh the list
-      } else {
-        setUploadMsg(data.detail || "Upload failed");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const raw = line.slice(6).trim();
+            if (!raw) continue;
+            try {
+              const event = JSON.parse(raw);
+              setUploadSteps((prev) => {
+                const idx = prev.findIndex((s) => s.step === event.step);
+                if (idx >= 0) {
+                  const updated = [...prev];
+                  updated[idx] = event;
+                  return updated;
+                }
+                return [...prev, event];
+              });
+              if (event.step === "complete") {
+                setUploadMsg(event.detail);
+              }
+            } catch {
+              // skip
+            }
+          }
+        }
       }
+      fetchDocuments();
     } catch (err) {
       setUploadMsg("Error: " + err.message);
     }
@@ -108,6 +141,19 @@ function App() {
     setAsking(false);
   };
 
+  const handleDelete = async (filename) => {
+    try {
+      const res = await fetch(`${API_URL}/documents/${encodeURIComponent(filename)}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        fetchDocuments();
+      }
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <div className="app">
       <h1>RAG App</h1>
@@ -120,8 +166,24 @@ function App() {
           onChange={(e) => setFile(e.target.files[0])}
         />
         <button onClick={handleUpload} disabled={!file || uploading}>
-          {uploading ? "Uploading..." : "Upload"}
+          {uploading ? "Processing..." : "Upload"}
         </button>
+
+        {uploadSteps.length > 0 && (
+          <div className="pipeline">
+            <h3>Upload Progress</h3>
+            {uploadSteps.map((s, i) => (
+              <div key={i} className={`step step-${s.status}`}>
+                <span className="step-icon">
+                  {s.status === "running" ? "⏳" : "✅"}
+                </span>
+                <span className="step-name">{s.step}</span>
+                <span className="step-detail">{s.detail}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {uploadMsg && <p className="msg">{uploadMsg}</p>}
 
         {documents.length > 0 && (
@@ -130,7 +192,10 @@ function App() {
             {documents.map((doc, i) => (
               <div key={i} className="doc-item">
                 <span>📄 {doc.filename}</span>
-                <span className="doc-meta">{doc.chunks} chunks • {doc.uploaded_at}</span>
+                <span className="doc-meta">
+                  {doc.chunks} chunks • {doc.uploaded_at}
+                  <button className="delete-btn" onClick={() => handleDelete(doc.filename)}>✕</button>
+                </span>
               </div>
             ))}
           </div>
