@@ -8,7 +8,7 @@ import {
   Upload, Wrench, X, Zap,
 } from "lucide-react";
 
-const API_URL = "https://rag-app-hackathon.onrender.com";
+const API_URL = "http://200.141.3.84:8000";
 
 /* ------------------------------- types ---------------------------------- */
 type PipelineStep = { step: string; status: string; detail?: string };
