@@ -8,7 +8,7 @@ import {
   Upload, Wrench, X, Zap,
 } from "lucide-react";
 
-const API_URL = "FORGE-BACKEND.WORK.GD";
+const API_URL = "https://forge-backend.work.gd";
 
 /* ------------------------------- types ---------------------------------- */
 type PipelineStep = { step: string; status: string; detail?: string };
