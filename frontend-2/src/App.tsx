@@ -169,6 +169,18 @@ export default function App() {
     } catch {}
   };
 
+  const handleReset = async () => {
+    if (!confirm("This will delete ALL documents, vectors, and chat history. Continue?")) return;
+    try {
+      const res = await fetch(`${API_URL}/reset`, { method: "POST" });
+      if (res.ok) {
+        fetchDocuments();
+        setChatMessages([]);
+        setSteps([]);
+      }
+    } catch {}
+  };
+
   const clearHistory = async () => {
     await fetch(`${API_URL}/history`, { method: "DELETE" });
     setChatMessages([]);
@@ -226,7 +238,7 @@ export default function App() {
       <main className="flex-1 min-w-0 flex flex-col">
         <TopBar view={view} />
         {view === "copilot" && <CopilotView chatMessages={chatMessages} steps={steps} asking={asking} question={question} setQuestion={setQuestion} handleAsk={handleAsk} clearHistory={clearHistory} documents={documents} chatScrollRef={chatScrollRef} />}
-        {view === "corpus" && <CorpusView file={file} setFile={setFile} uploading={uploading} handleUpload={handleUpload} uploadSteps={uploadSteps} uploadMsg={uploadMsg} documents={documents} handleDelete={handleDelete} />}
+        {view === "corpus" && <CorpusView file={file} setFile={setFile} uploading={uploading} handleUpload={handleUpload} uploadSteps={uploadSteps} uploadMsg={uploadMsg} documents={documents} handleDelete={handleDelete} handleReset={handleReset} />}
         {view === "graph" && <GraphView documents={documents} />}
         {view === "assets" && <AssetsView />}
         {view === "compliance" && <ComplianceView />}
@@ -517,9 +529,9 @@ function MiniStat({ label, value, tone }: { label: string; value: number | strin
 function CorpusView(props: {
   file: File | null; setFile: (f: File | null) => void; uploading: boolean;
   handleUpload: () => void; uploadSteps: PipelineStep[]; uploadMsg: string;
-  documents: DocItem[]; handleDelete: (f: string) => void;
+  documents: DocItem[]; handleDelete: (f: string) => void; handleReset: () => void;
 }) {
-  const { file, setFile, uploading, handleUpload, uploadSteps, uploadMsg, documents, handleDelete } = props;
+  const { file, setFile, uploading, handleUpload, uploadSteps, uploadMsg, documents, handleDelete, handleReset } = props;
   const inputRef = useRef<HTMLInputElement>(null);
   const [drag, setDrag] = useState(false);
 
@@ -574,6 +586,11 @@ function CorpusView(props: {
               <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Indexed</div>
               <div className="font-display text-lg font-semibold">{documents.length} document{documents.length === 1 ? "" : "s"} · corpus</div>
             </div>
+            {documents.length > 0 && (
+              <button onClick={handleReset} className="ml-auto px-3 py-1.5 text-xs font-mono rounded border border-hazard/50 text-hazard hover:bg-hazard/10 transition flex items-center gap-1.5">
+                <Trash2 className="h-3 w-3" /> Reset All
+              </button>
+            )}
           </div>
           {documents.length === 0 ? (
             <div className="rounded-md border border-dashed border-border p-10 text-center">

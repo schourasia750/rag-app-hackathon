@@ -41,6 +41,7 @@ QDRANT_PATH = "qdrant_data"
 COLLECTION_NAME = "documents"
 METADATA_FILE = "documents.json"
 BM25_STORE = "bm25_docs.pkl"
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(IMAGES_DIR, exist_ok=True)
 
@@ -115,7 +116,7 @@ def extract_page_images(filename: str, page_num: int) -> list[dict]:
             f.write(image_bytes)
 
         images_found.append({
-            "url": f"http://localhost:8000/images/{img_filename}",
+            "url": f"{BASE_URL}/images/{img_filename}",
             "page": page_num,
             "source": filename,
         })
@@ -399,7 +400,7 @@ async def list_documents():
 
 @app.delete("/documents/{filename}")
 async def delete_document(filename: str):
-    global vectorstore
+    """Delete a single document (keeps other docs)."""
     file_path = os.path.join(UPLOAD_DIR, filename)
     if os.path.exists(file_path):
         os.remove(file_path)
@@ -407,14 +408,45 @@ async def delete_document(filename: str):
         for img_file in os.listdir(IMAGES_DIR):
             if img_file.startswith(filename):
                 os.remove(os.path.join(IMAGES_DIR, img_file))
-    bm25_docs = load_bm25_docs()
-    bm25_docs = [d for d in bm25_docs if d.metadata.get("source") != filename]
-    save_bm25_docs(bm25_docs)
     docs_meta = load_doc_metadata()
     docs_meta = [d for d in docs_meta if d["filename"] != filename]
     save_doc_metadata(docs_meta)
+    return {"message": f"Deleted {filename} — use 'Reset All' to clear index"}
+
+
+@app.post("/reset")
+async def reset_all():
+    """Nuclear reset: close Qdrant, delete all data, reset state."""
+    global vectorstore, qdrant_client
+
+    # Close the Qdrant client to release file locks
+    if qdrant_client is not None:
+        try:
+            qdrant_client.close()
+        except Exception:
+            pass
+        qdrant_client = None
     vectorstore = None
-    return {"message": f"Deleted {filename}"}
+
+    # Delete data folders/files
+    import shutil as _shutil
+    if os.path.exists(QDRANT_PATH):
+        _shutil.rmtree(QDRANT_PATH, ignore_errors=True)
+    if os.path.exists(BM25_STORE):
+        os.remove(BM25_STORE)
+    if os.path.exists(METADATA_FILE):
+        os.remove(METADATA_FILE)
+    if os.path.exists(UPLOAD_DIR):
+        _shutil.rmtree(UPLOAD_DIR, ignore_errors=True)
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
+    if os.path.exists(IMAGES_DIR):
+        _shutil.rmtree(IMAGES_DIR, ignore_errors=True)
+        os.makedirs(IMAGES_DIR, exist_ok=True)
+
+    # Clear chat history
+    chat_history.clear()
+
+    return {"message": "All data reset successfully"}
 
 
 # --- Ask endpoint ---
