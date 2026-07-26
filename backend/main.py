@@ -258,13 +258,22 @@ def save_doc_metadata(docs):
 
 # --- Vector store ---
 
+# Single shared Qdrant client to avoid lock conflicts (lazy init)
+qdrant_client = None
 vectorstore = None
+
+
+def get_qdrant_client():
+    global qdrant_client
+    if qdrant_client is None:
+        qdrant_client = QdrantClient(path=QDRANT_PATH)
+    return qdrant_client
 
 
 def get_vectorstore():
     global vectorstore
     if vectorstore is None:
-        client = QdrantClient(path=QDRANT_PATH)
+        client = get_qdrant_client()
         embeddings = OpenAIEmbeddings()
         collections = [c.name for c in client.get_collections().collections]
         if COLLECTION_NAME in collections:
@@ -340,7 +349,7 @@ async def upload_file(file: UploadFile = File(...)):
 
         yield json.dumps({"step": "embedding", "status": "running", "detail": f"Embedding {len(chunks)} chunks..."})
         embeddings = OpenAIEmbeddings()
-        vectorstore = QdrantVectorStore.from_documents(chunks, embeddings, path=QDRANT_PATH, collection_name=COLLECTION_NAME)
+        vectorstore = QdrantVectorStore.from_documents(chunks, embeddings, collection_name=COLLECTION_NAME, client=get_qdrant_client())
         yield json.dumps({"step": "embedding", "status": "done", "detail": f"Stored in Qdrant"})
 
         yield json.dumps({"step": "bm25", "status": "running", "detail": "Updating BM25 index..."})
