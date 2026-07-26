@@ -349,7 +349,28 @@ async def upload_file(file: UploadFile = File(...)):
 
         yield json.dumps({"step": "embedding", "status": "running", "detail": f"Embedding {len(chunks)} chunks..."})
         embeddings = OpenAIEmbeddings()
-        vectorstore = QdrantVectorStore.from_documents(chunks, embeddings, collection_name=COLLECTION_NAME, client=get_qdrant_client())
+        client = get_qdrant_client()
+
+        # Check if collection exists, if not create it
+        collections = [c.name for c in client.get_collections().collections]
+        if COLLECTION_NAME not in collections:
+            # Create collection with first batch
+            from qdrant_client.models import VectorParams, Distance
+            # Get embedding dimension by embedding a test string
+            test_embedding = embeddings.embed_query("test")
+            client.create_collection(
+                collection_name=COLLECTION_NAME,
+                vectors_config=VectorParams(size=len(test_embedding), distance=Distance.COSINE),
+            )
+
+        # Use existing vectorstore or create new one
+        vectorstore = QdrantVectorStore(
+            client=client,
+            collection_name=COLLECTION_NAME,
+            embedding=embeddings,
+        )
+        # Add documents to the vectorstore
+        vectorstore.add_documents(chunks)
         yield json.dumps({"step": "embedding", "status": "done", "detail": f"Stored in Qdrant"})
 
         yield json.dumps({"step": "bm25", "status": "running", "detail": "Updating BM25 index..."})

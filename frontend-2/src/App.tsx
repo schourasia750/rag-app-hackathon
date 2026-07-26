@@ -8,8 +8,7 @@ import {
   Upload, Wrench, X, Zap,
 } from "lucide-react";
 
-const API_URL = "https://forge-rag.duckdns.org";
-
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 /* ------------------------------- types ---------------------------------- */
 type PipelineStep = { step: string; status: string; detail?: string };
 type ImageRef = { url: string; page?: number; source?: string };
